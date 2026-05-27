@@ -18,6 +18,13 @@ def gibbs_classification_chunk(
     beta = np.asarray(params.betas, dtype=float)
     sigma = np.asarray(params.sigmas, dtype=float)
     sigma2 = sigma ** 2
+    if np.any(sigma2 <= 0.0):
+        # sigma^2 = 0 collapses the trait-value latent (t == M.e); the (e, t)
+        # Gibbs sampler is degenerate and its exact limit is the analytic
+        # posterior. Delegate so `classify --inference gibbs` works at sigma=0.
+        from .analytical import analytical_classification_chunk
+
+        return analytical_classification_chunk(params, betas_obs, ses)
     tau2 = np.asarray(params.taus, dtype=float) ** 2
     mu = np.asarray(params.mus, dtype=float)
     trait_edges = np.asarray(params.trait_edges, dtype=float)
